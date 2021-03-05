@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+  redis:
+    image: redis:latest
+    container_name: rd01
+    ports:
+      - '6379:6379'
+  web:
+    build: .
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    container_name: falconAI_django
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    links:
+      - redis
+    depends_on:
+      - celery
+  celery:
+    build: .
+    command: celery -A falconAI_test worker --beat -S django -l info
+    volumes:
+      - .:/app
+    links:
+      - redis
